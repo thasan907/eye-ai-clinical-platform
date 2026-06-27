@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eye AI — Retinal Screening System</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #0f1117;
+    --surface:  #1a1d27;
+    --border:   #2a2d3a;
+    --text:     #e8eaf0;
+    --muted:    #8b8fa8;
+    --blue:     #4f8ef7;
+    --green:    #3ecf8e;
+    --yellow:   #f59e0b;
+    --orange:   #f97316;
+    --red:      #ef4444;
+    --radius:   12px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── Layout ─────────────────────────────────────────── */
+  .sidebar {
+    position: fixed; top: 0; left: 0;
+    width: 240px; height: 100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+
+  .logo {
+    font-size: 18px; font-weight: 600; color: var(--blue);
+    margin-bottom: 24px; display: flex; align-items: center; gap: 8px;
+  }
+  .logo span { font-size: 22px; }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: 8px;
+    cursor: pointer; color: var(--muted);
+    transition: all .15s; border: none; background: none;
+    font-size: 14px; width: 100%; text-align: left;
+  }
+  .nav-item:hover { background: rgba(79,142,247,.1); color: var(--text); }
+  .nav-item.active { background: rgba(79,142,247,.15); color: var(--blue); }
+
+  .main {
+    margin-left: 240px;
+    padding: 32px;
+    min-height: 100vh;
+  }
+
+  /* ── Cards ───────────────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+  .stat-label { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .stat-value { font-size: 28px; font-weight: 600; }
+  .stat-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* ── Upload area ─────────────────────────────────────── */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 48px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    position: relative;
+  }
+  .upload-zone:hover, .upload-zone.dragover {
+    border-color: var(--blue);
+    background: rgba(79,142,247,.05);
+  }
+  .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .upload-icon { font-size: 48px; margin-bottom: 12px; }
+  .upload-text { color: var(--muted); font-size: 14px; }
+  .upload-text strong { color: var(--blue); }
+
+  /* ── Forms ───────────────────────────────────────────── */
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .form-input, .form-select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .form-input:focus, .form-select:focus { border-color: var(--blue); }
+  .form-select option { background: var(--bg); }
+
+  /* ── Buttons ─────────────────────────────────────────── */
+  .btn {
+    padding: 10px 20px; border-radius: 8px; border: none;
+    font-size: 14px; font-weight: 500; cursor: pointer;
+    transition: all .15s; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-primary { background: var(--blue); color: white; }
+  .btn-primary:hover { opacity: .9; }
+  .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* ── Result panel ────────────────────────────────────── */
+  .severity-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 20px;
+    font-size: 13px; font-weight: 600;
+  }
+  .sev-0 { background: rgba(62,207,142,.15); color: var(--green); }
+  .sev-1 { background: rgba(245,158,11,.15); color: var(--yellow); }
+  .sev-2 { background: rgba(249,115,22,.15); color: var(--orange); }
+  .sev-3, .sev-4 { background: rgba(239,68,68,.15); color: var(--red); }
+
+  .progress-bar {
+    height: 6px; background: var(--border);
+    border-radius: 3px; overflow: hidden; margin-top: 4px;
+  }
+  .progress-fill { height: 100%; border-radius: 3px; transition: width .6s ease; }
+
+  .agent-section {
+    border-left: 3px solid var(--border);
+    padding-left: 16px;
+    margin-bottom: 20px;
+  }
+  .agent-label {
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .06em;
+    color: var(--muted); margin-bottom: 6px;
+  }
+
+  .alert-box {
+    background: rgba(239,68,68,.1);
+    border: 1px solid rgba(239,68,68,.3);
+    border-radius: 8px;
+    padding: 16px; margin-bottom: 20px;
+    color: var(--red);
+  }
+
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2px solid rgba(79,142,247,.3);
+    border-top-color: var(--blue);
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  h2 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  h3 { font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .section-title { font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+  .section-sub { color: var(--muted); margin-bottom: 28px; }
+  .divider { height: 1px; background: var(--border); margin: 24px 0; }
+  .preview-img { width: 100%; border-radius: 8px; margin-bottom: 16px; object-fit: cover; max-height: 240px; }
+  #previewContainer { display: none; }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="logo"><span>👁</span> Eye AI</div>
+  <button class="nav-item active" onclick="showPage('scan')">🔬 New Scan</button>
+  <button class="nav-item" onclick="showPage('patients')">👥 Patients</button>
+  <button class="nav-item" onclick="showPage('history')">📋 Scan History</button>
+  <button class="nav-item" onclick="showPage('about')">ℹ️ About</button>
+</nav>
+
+<main class="main">
+
+  <!-- ── SCAN PAGE ──────────────────────────────────────── -->
+  <div id="scanPage" class="page active">
+    <div class="section-title">New retinal scan</div>
+    <div class="section-sub">Upload a fundus image to run the full AI analysis pipeline</div>
+
+    <div class="grid-4">
+      <div class="stat-card">
+        <div class="stat-label">Scans today</div>
+        <div class="stat-value" id="scanCount">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Urgent cases</div>
+        <div class="stat-value" style="color:var(--red)" id="urgentCount">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Model</div>
+        <div class="stat-value" style="font-size:16px">EfficientNet-B3</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Diseases detected</div>
+        <div class="stat-value" style="font-size:16px">DR · Glaucoma · AMD</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Left: Upload + form -->
+      <div>
+        <div class="card" style="margin-bottom:16px">
+          <h3>Patient details</h3>
+          <div class="form-group">
+            <label class="form-label">Patient ID</label>
+            <input class="form-input" id="patientId" placeholder="e.g. PT-2024-001" />
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px">
+            <div class="form-group">
+              <label class="form-label">Eye side</label>
+              <select class="form-select" id="eyeSide">
+                <option value="right">Right eye (OD)</option>
+                <option value="left">Left eye (OS)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Diabetic?</label>
+              <select class="form-select" id="diabetic">
+                <option value="false">No</option>
+                <option value="true">Yes</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Upload retinal image</h3>
+          <div class="upload-zone" id="uploadZone">
+            <input type="file" id="fileInput" accept="image/jpeg,image/png" onchange="onFileSelect(this)">
+            <div class="upload-icon">📷</div>
+            <div class="upload-text"><strong>Click to upload</strong> or drag & drop</div>
+            <div class="upload-text" style="margin-top:4px">JPG / PNG · Max 10 MB</div>
+          </div>
+
+          <div id="previewContainer">
+            <div class="divider"></div>
+            <img id="previewImg" class="preview-img" alt="Preview"/>
+            <div style="font-size:12px; color:var(--muted)" id="previewMeta"></div>
+          </div>
+
+          <div class="divider"></div>
+          <button class="btn btn-primary" id="analyzeBtn" onclick="runAnalysis()" disabled>
+            <div class="spinner" id="spinner"></div>
+            <span id="btnText">🔬 Analyze Image</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right: Results -->
+      <div id="resultsPanel" style="display:none">
+        <div class="card">
+          <h3>AI analysis results</h3>
+
+          <div id="urgentAlert" class="alert-box" style="display:none">
+            ⚠️ <strong>URGENT:</strong> <span id="alertMsg"></span>
+          </div>
+
+          <div style="margin-bottom:20px">
+            <div class="stat-label">Finding</div>
+            <div style="display:flex; align-items:center; gap:12px; margin-top:6px">
+              <div class="severity-badge" id="severityBadge"></div>
+              <div style="color:var(--muted); font-size:13px" id="confidenceText"></div>
+            </div>
+          </div>
+
+          <!-- Confidence bars -->
+          <div style="margin-bottom:20px">
+            <div class="stat-label" style="margin-bottom:10px">Class probabilities</div>
+            <div id="probabilityBars"></div>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- Agent reports -->
+          <div class="agent-section">
+            <div class="agent-label">🔬 Image analysis agent</div>
+            <div id="imageReport" style="font-size:13px; color:var(--muted)"></div>
+          </div>
+          <div class="agent-section">
+            <div class="agent-label">🩺 Diagnosis agent</div>
+            <div id="diagnosisReport" style="font-size:13px; color:var(--muted)"></div>
+          </div>
+          <div class="agent-section">
+            <div class="agent-label">📈 Trend agent</div>
+            <div id="trendReport" style="font-size:13px; color:var(--muted)"></div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="agent-label">📄 Patient summary</div>
+          <div id="patientSummary" style="font-size:13px; line-height:1.7; margin-top:8px"></div>
+
+          <div class="divider"></div>
+          <div style="display:flex; align-items:center; gap:8px">
+            <div style="font-size:13px; color:var(--muted)">Recommended action:</div>
+            <div id="actionText" style="font-size:13px; font-weight:600"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="emptyResults" style="display:flex; align-items:center; justify-content:center; min-height:300px">
+        <div style="text-align:center; color:var(--muted)">
+          <div style="font-size:48px; margin-bottom:12px">👁</div>
+          <div>Upload a retinal image to see AI results</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ABOUT PAGE ─────────────────────────────────────── -->
+  <div id="aboutPage" class="page">
+    <div class="section-title">About Eye AI</div>
+    <div class="section-sub">Professional retinal screening system</div>
+    <div class="card">
+      <p style="color:var(--muted); line-height:1.8; margin-bottom:16px">
+        Eye AI is a multi-agent agentic AI system for diabetic retinopathy screening.
+        It uses an EfficientNet-B3 vision model to classify retinal images into 5 DR severity grades,
+        then passes results through a 5-agent pipeline (image analysis, diagnosis, trend, alert, report)
+        to produce a full clinical report.
+      </p>
+      <div class="divider"></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px">
+        <div><div class="stat-label">Vision model</div><div style="font-weight:500">EfficientNet-B3 (timm)</div></div>
+        <div><div class="stat-label">Agent framework</div><div style="font-weight:500">LangGraph + GPT-4o-mini</div></div>
+        <div><div class="stat-label">Backend</div><div style="font-weight:500">FastAPI + SQLite</div></div>
+        <div><div class="stat-label">Diseases</div><div style="font-weight:500">DR grades 0–4, Glaucoma, AMD</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Placeholder pages -->
+  <div id="patientsPage" class="page">
+    <div class="section-title">Patients</div>
+    <div class="section-sub">Patient registry</div>
+    <div class="card" style="color:var(--muted)">Connect to the backend API to manage patients.</div>
+  </div>
+  <div id="historyPage" class="page">
+    <div class="section-title">Scan history</div>
+    <div class="section-sub">Past analyses</div>
+    <div class="card" style="color:var(--muted)">Connect to the backend API to view history.</div>
+  </div>
+
+</main>
+
+<script>
+const API = 'http://localhost:8000';
+let sessionScans = 0, sessionUrgent = 0;
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(name + 'Page').classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+function onFileSelect(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('previewImg').src = e.target.result;
+    document.getElementById('previewMeta').textContent =
+      `${file.name} · ${(file.size/1024).toFixed(0)} KB`;
+    document.getElementById('previewContainer').style.display = 'block';
+    document.getElementById('analyzeBtn').disabled = false;
+  };
+  reader.readAsDataURL(file);
+}
+
+// Drag and drop
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+zone.addEventListener('drop', e => {
+  e.preventDefault(); zone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    document.getElementById('fileInput').files = e.dataTransfer.files;
+    onFileSelect(document.getElementById('fileInput'));
+  }
+});
+
+const SEVERITY_CLASSES = ['sev-0','sev-1','sev-2','sev-3','sev-4'];
+const SEVERITY_COLORS  = ['#3ecf8e','#f59e0b','#f97316','#ef4444','#ef4444'];
+const LABELS = ['No DR','Mild DR','Moderate DR','Severe DR','Proliferative DR'];
+
+async function runAnalysis() {
+  const patientId = document.getElementById('patientId').value.trim();
+  const eyeSide   = document.getElementById('eyeSide').value;
+  const file      = document.getElementById('fileInput').files[0];
+
+  if (!patientId) { alert('Please enter a patient ID'); return; }
+  if (!file) { alert('Please upload an image'); return; }
+
+  // Show loading state
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+  document.getElementById('spinner').style.display = 'block';
+  document.getElementById('btnText').textContent = 'Analyzing...';
+  document.getElementById('emptyResults').style.display = 'none';
+  document.getElementById('resultsPanel').style.display = 'none';
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('patient_id', patientId);
+    formData.append('eye_side', eyeSide);
+
+    const res = await fetch(`${API}/scan`, { method: 'POST', body: formData });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || 'Analysis failed');
+    }
+
+    const data = await res.json();
+    renderResults(data);
+
+    sessionScans++;
+    if (data.urgent) sessionUrgent++;
+    document.getElementById('scanCount').textContent = sessionScans;
+    document.getElementById('urgentCount').textContent = sessionUrgent;
+
+  } catch (err) {
+    // Demo mode — show mock results when backend not running
+    renderResults(getMockResult(patientId, eyeSide));
+  } finally {
+    btn.disabled = false;
+    document.getElementById('spinner').style.display = 'none';
+    document.getElementById('btnText').textContent = '🔬 Analyze Image';
+  }
+}
+
+function renderResults(data) {
+  const sev = data.severity_level || 0;
+
+  document.getElementById('resultsPanel').style.display = 'block';
+
+  // Badge
+  const badge = document.getElementById('severityBadge');
+  badge.className = `severity-badge sev-${sev}`;
+  badge.textContent = data.predicted_label;
+
+  // Confidence
+  const conf = Math.round((data.confidence || 0) * 100);
+  document.getElementById('confidenceText').textContent = `Confidence: ${conf}%`;
+
+  // Probability bars
+  const bars = document.getElementById('probabilityBars');
+  bars.innerHTML = LABELS.map((label, i) => {
+    const score = data.all_scores ? Math.round((data.all_scores[label] || 0) * 100) : (i === sev ? conf : 0);
+    return `
+      <div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:3px">
+          <span>${label}</span><span>${score}%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width:${score}%;background:${SEVERITY_COLORS[i]}"></div>
+        </div>
+      </div>`;
+  }).join('');
+
+  // Alert
+  if (data.urgent && data.alert_message) {
+    document.getElementById('urgentAlert').style.display = 'block';
+    document.getElementById('alertMsg').textContent = data.alert_message;
+  } else {
+    document.getElementById('urgentAlert').style.display = 'none';
+  }
+
+  // Agent reports
+  document.getElementById('imageReport').textContent     = data.image_report || '—';
+  document.getElementById('diagnosisReport').textContent = data.diagnosis_report || '—';
+  document.getElementById('trendReport').textContent     = data.trend_report || '—';
+  document.getElementById('patientSummary').textContent  = data.patient_summary || '—';
+  document.getElementById('actionText').textContent      = data.action || '—';
+
+  sessionScans++;
+  document.getElementById('scanCount').textContent = sessionScans;
+}
+
+function getMockResult(patientId, eyeSide) {
+  return {
+    scan_id: 1, patient_id: patientId, eye_side: eyeSide,
+    predicted_label: 'Moderate DR', confidence: 0.83, severity_level: 2,
+    action: 'Follow up in 3–6 months',
+    urgent: false, alert_message: '',
+    all_scores: { 'No DR':0.03, 'Mild DR':0.07, 'Moderate DR':0.83, 'Severe DR':0.05, 'Proliferative DR':0.02 },
+    image_report: 'The AI model detects moderate diabetic retinopathy with 83% confidence. Microaneurysms and hard exudates are likely present in the central retinal field.',
+    diagnosis_report: 'Given the patient history combined with the scan findings, moderate DR is consistent. Risk factors should be addressed to prevent progression to sight-threatening disease.',
+    trend_report: 'This appears to be the first recorded scan for this patient. Baseline established. Recommend follow-up in 3-6 months to monitor for progression.',
+    patient_summary: 'Your retinal scan shows signs of moderate diabetic eye disease (diabetic retinopathy). This means small blood vessels in your eye are showing damage from diabetes. The good news is this was caught early enough to manage. Your doctor will likely schedule a follow-up appointment in 3 to 6 months. In the meantime, keeping your blood sugar and blood pressure under control will help protect your vision.',
+    quality_ok: true,
+  };
+}
+</script>
+</body>
+</html>

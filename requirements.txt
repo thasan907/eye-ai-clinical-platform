@@ -1,0 +1,35 @@
+# ─── Core AI / ML ───────────────────────────────────────────────
+torch>=2.2.0
+torchvision>=0.17.0
+timm>=0.9.12               # EfficientNet & other pretrained vision models
+scikit-learn>=1.4.0
+numpy>=1.26.0
+pandas>=2.2.0
+
+# ─── Image processing ────────────────────────────────────────────
+opencv-python-headless>=4.9.0
+Pillow>=10.2.0
+albumentations>=1.3.1      # Image augmentation
+
+# ─── Agentic AI ──────────────────────────────────────────────────
+langchain>=0.1.0
+langchain-openai>=0.0.5
+langgraph>=0.0.26
+openai>=1.12.0
+
+# ─── API / Backend ───────────────────────────────────────────────
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.9    # File upload support
+pydantic>=2.6.0
+
+# ─── Database ────────────────────────────────────────────────────
+sqlalchemy>=2.0.27
+aiosqlite>=0.20.0
+
+# ─── Utilities ───────────────────────────────────────────────────
+python-dotenv>=1.0.0
+loguru>=0.7.2
+tqdm>=4.66.0
+matplotlib>=3.8.0
+seaborn>=0.13.0
