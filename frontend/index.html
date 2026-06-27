@@ -933,7 +933,7 @@ body {
     <div class="tb-center">
       <div class="model-badge">
         <div class="model-dot"></div>
-        <span class="model-badge-text">EfficientNet-B4 &nbsp;·&nbsp; AUC 94.28% &nbsp;·&nbsp; 5-Agent LangGraph Pipeline</span>
+        <span class="model-badge-text">EfficientNet-B4 &nbsp;·&nbsp; AUC 93.46% &nbsp;·&nbsp; 5-Agent LangGraph Pipeline</span>
       </div>
     </div>
     <div class="tb-right">
@@ -988,7 +988,7 @@ body {
         <div class="card-orb"></div>
         <div class="stat-badge">✓ Ready</div>
         <div class="stat-icon-wrap">🧠</div>
-        <div class="stat-value" style="font-size:20px; padding-top:4px">94.28%</div>
+        <div class="stat-value" style="font-size:20px; padding-top:4px">93.46%</div>
         <div class="stat-label">Model AUC score</div>
         <div class="stat-sublabel">EfficientNet-B4 · Trained</div>
       </div>
@@ -1135,7 +1135,7 @@ body {
 
             <div class="source-badge source-real" id="sourceBadge">
               <span>💻</span>
-              <span id="sourceText">Real AI · EfficientNet-B4 · AUC 94.28%</span>
+              <span id="sourceText">Real AI · EfficientNet-B4 · AUC 93.46%</span>
             </div>
 
             <div class="alert-banner" id="alertBanner" style="display:none">
@@ -1349,7 +1349,7 @@ function renderResults(d, isReal) {
   const sourceText = document.getElementById('sourceText');
   badge.className = 'source-badge ' + (isReal ? 'source-real' : 'source-demo');
   sourceText.textContent = isReal
-    ? 'Real AI · EfficientNet-B4 · AUC 94.28%'
+    ? 'Real AI · EfficientNet-B4 · AUC 93.46%'
     : 'Demo mode · Start server for real predictions';
 
   /* Alert */
@@ -1450,7 +1450,7 @@ function getDemoData(pid, eye) {
     image_report: '[Demo] Start the backend server to get real EfficientNet-B4 predictions. Command: uvicorn api.main:app --reload --host 0.0.0.0 --port 8000',
     diagnosis_report: '[Demo] The 5-agent LangGraph pipeline generates personalised clinical reports using patient HbA1c, age, and diabetes history.',
     trend_report: '[Demo] Longitudinal tracking compares each scan to previous visits and automatically flags disease progression.',
-    patient_summary: '[Demo mode] Connect the backend server to receive real AI-powered clinical reports from your trained EfficientNet-B4 model (AUC 94.28%).'
+    patient_summary: '[Demo mode] Connect the backend server to receive real AI-powered clinical reports from your trained EfficientNet-B4 model (AUC 93.46%).'
   };
 }
 </script>
