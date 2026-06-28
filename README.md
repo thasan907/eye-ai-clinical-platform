@@ -92,22 +92,14 @@
          └─────────────────────────────┘
 ```
 
-\---
 ## 📸 Screenshots
+![Dashboard](assets/dashboard.png)
 
+![Results](assets/results.png)
 
+![Analytics](assets/analytics.png)
 
-!\[Dashboard](assets/dashboard.png)
-
-!\[Results](assets/results.png)
-
-!\[Analytics](assets/analytics.png)
-
-!\[Pipeline](assets/pipeline.png)
-
-
-
-\---
+![Pipeline](assets/pipeline.png)
 
 ## 📊 Model Performance
 
