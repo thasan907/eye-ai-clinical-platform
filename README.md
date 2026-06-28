@@ -101,6 +101,10 @@
 
 ![Pipeline](assets/pipeline.png)
 
+## 🎥 Demo
+
+https://www.linkedin.com/posts/toufique-hasan-0a7941240_ai-machinelearning-healthcareai-ugcPost-7477081072590262272-KE8s/?utm_source=share&utm_medium=member_desktop&rcm=ACoAADvwdz8BIAEjQevmzpnMHVpvG2Ji46iUy3E
+
 ## 📊 Model Performance
 
 <table>
